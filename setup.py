@@ -2,41 +2,52 @@ import paho.mqtt.client as mqtt
 import json
 import sqlite3
 import time
+from sqlalchemy import *
 
-# The callback for when the client receives a CONNACK response from the server.
+def create_tables():
+    db = create_engine('sqlite:///door_rfid.sqlite')
+    db.echo = False
+    metadata = MetaData(db)
+
+    users = Table('users', metadata,
+                  Column('chip_id', Integer, primary_key=True),
+                  Column('name', String(40)),
+                  Column('surname', String(40)),
+                  )
+
+    doors = Table('doors', metadata,
+                 Column('door_id', Integer),
+                 Column('door_name', String(10)),
+                 )
+
+    boot = Table('boot', metadata,
+                 Column('door_id', Integer),
+                 Column('time', String(8)),
+                 Column('date', String(10)),
+                 )
+
+    heartbeat = Table('heartbeat', metadata,
+                 Column('door_id', Integer),
+                 Column('time', String(8)),
+                 Column('date', String(10)),
+                 )
+
+    accesslog = Table('accesslog', metadata,
+                      Column('chip_id', Integer),
+                      Column('door_id', Integer),
+                      Column('time', String(8)),
+                      Column('date', String(10)),
+                      )
+
+    metadata.create_all(db)
+
+def set_intro_data():
+    pass
+
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
     client.subscribe("kolarna")
     client.subscribe("hlavni")
-    # Subscribing in on_connect() means that if we lose the connection and
-    # reconnect then subscriptions will be renewed.
-
-'''def save_user(chip_number, name, surname):
-
-    conn = sqlite3.connect('rfid.db')
-    cur = conn.cursor()
-    cur.execute('INSERT INTO users VALUES (?, ?, ?)', (chip_number, name, surname))
-    conn.commit()
-
-    conn.close()'''
-
-def save_to_db(sql):
-
-    conn = sqlite3.connect('rfid.db')
-    cur = conn.cursor()
-
-    door_id =4
-    chip_number = 89898
-    time = 999
-    date =8888
-    cur.execute(sql)
-   # cur.execute('INSERT INTO log VALUES (?, ?, ?, ?)', ("1", "33", "sdfsdf", "sdf"))
-    #cur.execute('INSERT INTO log VALUES (?, ?, ?, ?)', (door_id, chip_number, time, date))
-    conn.commit()
-
-    conn.close()
-
-# The callback for when a PUBLISH message is received from the server.
 
 def on_message(client, userdata, msg):
 
@@ -74,10 +85,13 @@ client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
 
-client.connect("192.168.254.223", 1883, 60)
+client.connect("192.168.1.50", 1883, 60)
 
-# Blocking call that processes network traffic, dispatches callbacks and
-# handles reconnecting.
-# Other loop*() functions are available that give a threaded interface and a
-# manual interface.
+
+
+
+
+
+create_tables()
 client.loop_forever()
+

@@ -17,6 +17,7 @@ list = Table('list', metadata,
              Column('pozice', String(10)),
              Column('penize', Integer),
              )
+
 #list.create()
 #users.create()
 
